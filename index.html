@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chord Suggester — Root Note to Chord Explorer</title>
+  </head>
+  <body>
+    <div id="app">
+      <header class="rack-header">
+        <div class="rack-header__top">
+          <div class="rack-header__brand">
+            <h1>Chord Suggester</h1>
+          </div>
+          <p class="rack-header__sub">play a note — see every chord you can build from it</p>
+          <div class="server-status">
+            <span class="server-status__dot" id="server-dot" aria-hidden="true"></span>
+            <span class="server-status__label" id="server-label">Checking server…</span>
+          </div>
+        </div>
+        <div class="swatch-strip" aria-hidden="true">
+          <span style="background:hsl(0,68%,52%)"></span>
+          <span style="background:hsl(30,68%,52%)"></span>
+          <span style="background:hsl(60,68%,52%)"></span>
+          <span style="background:hsl(90,68%,52%)"></span>
+          <span style="background:hsl(120,68%,52%)"></span>
+          <span style="background:hsl(150,68%,52%)"></span>
+          <span style="background:hsl(180,68%,52%)"></span>
+          <span style="background:hsl(210,68%,52%)"></span>
+          <span style="background:hsl(240,68%,52%)"></span>
+          <span style="background:hsl(270,68%,52%)"></span>
+          <span style="background:hsl(300,68%,52%)"></span>
+          <span style="background:hsl(330,68%,52%)"></span>
+        </div>
+      </header>
+
+      <main class="rack" id="rack">
+        <section class="panel panel--input" aria-labelledby="input-title">
+          <div class="panel__header-row">
+            <h2 id="input-title" class="panel__title"><span class="panel__num">01</span> Input</h2>
+            <button id="input-source-toggle" class="swap-btn" type="button" aria-label="Switch to guitar input">🎸</button>
+          </div>
+
+          <div id="mic-input-view">
+            <p class="panel__hint">Play a single note on your guitar. The detector picks up the root note and updates the chords in real time.</p>
+            <div class="input-controls">
+              <button id="mic-btn" class="btn btn--primary">Start listening</button>
+              <select id="device-select" class="device-select" disabled>
+                <option>No input devices found</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="guitar-input-view" hidden>
+            <p class="panel__hint">Click any fret to hear that note, just like playing it for real.</p>
+            <div id="guitar-widget"></div>
+          </div>
+
+          <div class="note-display" aria-live="polite">
+            <span class="note-display__note" id="detected-note">—</span>
+            <span class="note-display__label">detected root</span>
+          </div>
+          <div class="position-display" id="position-display" hidden>
+            <span class="position-display__label">Suggested position</span>
+            <span class="position-display__value" id="position-value">—</span>
+            <span class="position-display__caveat">a best guess — the same note can be played in several spots</span>
+          </div>
+
+          <div id="mic-status-view">
+            <div class="confidence-row">
+              <span class="confidence-label">Confidence</span>
+              <div class="meter"><div class="meter__fill" id="confidence-meter"></div></div>
+              <span class="confidence-value" id="confidence-value">—</span>
+            </div>
+            <p class="status-line" id="input-status">Idle — waiting for input</p>
+          </div>
+        </section>
+
+        <section class="panel panel--chords" aria-labelledby="chords-title">
+          <h2 id="chords-title" class="panel__title"><span class="panel__num">02</span> Chords</h2>
+          <div class="category-tabs" role="tablist">
+            <button class="tab is-active" data-category="standard" role="tab" aria-selected="true">Standard</button>
+            <button class="tab" data-category="jazz" role="tab" aria-selected="false">Jazz</button>
+            <button class="tab" data-category="technical" role="tab" aria-selected="false">Technical</button>
+          </div>
+          <div id="chord-grid" class="chord-grid">
+            <p class="chord-placeholder">Start listening and play a note to see chords</p>
+          </div>
+        </section>
+
+        <section class="panel panel--audiotool" aria-labelledby="at-title">
+          <h2 id="at-title" class="panel__title"><span class="panel__num">03</span> Audiotool</h2>
+          <p class="panel__hint" id="at-hint">
+            Paste a beta.audiotool.com project URL and click Open, then send any chord straight into your workspace.
+          </p>
+          <div class="at-controls" id="at-controls" hidden>
+            <div class="at-row">
+              <label for="project-url">Project URL</label>
+              <input id="project-url" class="text-input" type="text" placeholder="https://beta.audiotool.com/studio?project=..." />
+              <button id="open-project-btn" class="btn btn--ghost">Open</button>
+            </div>
+          </div>
+          <div class="at-queue" id="at-queue" hidden>
+            <p class="at-queue__label">Last chord sent</p>
+            <p class="at-queue__chord" id="last-sent-chord">—</p>
+            <p class="at-queue__tip">Click <strong>Send to Audiotool</strong> on any chord card to add it to your project.</p>
+          </div>
+          <p class="status-line" id="at-status">Checking for local server…</p>
+        </section>
+
+        <section class="panel panel--positions" aria-labelledby="positions-title">
+          <h2 id="positions-title" class="panel__title">
+            <span class="panel__num">04</span> All positions
+            <span class="positions__chord" id="positions-chord"></span>
+          </h2>
+          <p class="panel__hint" id="positions-hint">
+            Pick <strong>All positions</strong> on any chord above to see every way to play it up the neck.
+          </p>
+          <div class="positions-grid" id="positions-grid"></div>
+        </section>
+      </main>
+
+      <footer class="rack-footer">
+        <span>Web Audio API · YIN pitch detection</span>
+        <span class="dot-sep">·</span>
+        <span>Audiotool Nexus via local bridge</span>
+      </footer>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:developer.audiotool.com)",
+      "Bash(xargs ls -la)",
+      "Bash(env)",
+      "Bash(node --check scripts/chord-server.mjs)",
+      "Bash(node scripts/chord-server.mjs)",
+      "Bash(echo \"EXIT CODE: $?\")",
+      "Bash(npx tsc *)",
+      "Bash(npx tsx *)",
+      "WebFetch(domain:www.all-guitar-chords.com)",
+      "Bash(grep -nE '#[0-9a-fA-F]{3,8}\\\\b' src/style.css)",
+      "Bash(grep -vE '#[0-9a-fA-F]{3}[;, \\)]|#[0-9a-fA-F]{6}[;, \\)]|#[0-9a-fA-F]{8}[;, \\)]|#[0-9a-fA-F]{3}$|#[0-9a-fA-F]{6}$')",
+      "Bash(node -e ' *)"
+    ]
+  }
+}

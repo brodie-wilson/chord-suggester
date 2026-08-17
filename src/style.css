@@ -1,0 +1,362 @@
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Nunito+Sans:wght@400;600;700;800&display=swap");
+
+/* Visual theme: Masayoshi Takanaka — "The Rainbow Goblins" (1981), whose
+   sleeve uses Ul de Rico's oil-on-panel paintings. The look those give us:
+   a deep twilight sky lit from within, warm parchment surfaces, gilded
+   edges, and jewel-toned accents, with the rainbow itself as the motif.
+   Panels stay light on purpose — the chord diagrams and note pills are
+   dark-ink-on-paper, and they read best against parchment. */
+:root {
+  --night: #150e2b;
+  --night-deep: #0d0819;
+  --night-text: #f0e5cd;
+  --night-text-dim: #b5a488;
+
+  --paper: #fdf7ea;
+  --paper-raised: #f6ecd7;
+  --line: #e2cfab;
+  --text: #2c1e10;
+  --text-dim: #7d6a4e;
+
+  /* Jewel tones lifted from the paintings. Names kept from the original
+     palette so every rule that references them still reads sensibly. */
+  --indigo: #6b3fb5;
+  --indigo-soft: #ede4fb;
+  --amber: #bd8420;
+  --teal: #17806a;
+  --green: #35935a;
+  --red: #b8324a;
+  --gold: #d8a93a;
+
+  --shadow-card: 0 2px 6px rgba(10, 6, 24, .28), 0 14px 34px rgba(10, 6, 24, .3);
+  --shadow-raised: 0 4px 12px rgba(10, 6, 24, .34), 0 20px 48px rgba(10, 6, 24, .38);
+
+  --font-display: "Cinzel", Georgia, serif;
+  --font-body: "Nunito Sans", sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; color: var(--text); font-family: var(--font-body); }
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(1100px 620px at 12% -8%, rgba(126, 62, 200, .55), transparent 60%),
+    radial-gradient(900px 520px at 88% 4%, rgba(214, 128, 44, .32), transparent 62%),
+    radial-gradient(1000px 700px at 50% 108%, rgba(23, 128, 106, .34), transparent 62%),
+    linear-gradient(180deg, var(--night) 0%, var(--night-deep) 100%);
+  background-attachment: fixed;
+}
+#app { max-width: 1320px; margin: 0 auto; padding: 34px 12px 64px; }
+
+/* ── Header ─────────────────────────────────────────────── */
+.rack-header { border-bottom: 1px solid rgba(216, 169, 58, .35); padding-bottom: 22px; margin-bottom: 30px; }
+.rack-header__top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 14px 18px; }
+.rack-header__brand { display: flex; align-items: center; gap: 10px; }
+.rack-header h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 27px;
+  letter-spacing: .04em;
+  margin: 0;
+  background: linear-gradient(100deg, #f6d98a, #fff6dd 40%, #e0ac3f 75%, #f6d98a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.rack-header__sub { font-size: 13px; color: var(--night-text-dim); margin: 4px 0 0; font-style: italic; }
+
+.server-status { margin-left: auto; display: flex; align-items: center; gap: 7px; }
+.server-status__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); box-shadow: 0 0 0 3px rgba(184, 50, 74, .25), 0 0 10px rgba(184, 50, 74, .6); transition: background .2s ease, box-shadow .2s ease; }
+.server-status__dot.is-online { background: #4fd48a; box-shadow: 0 0 0 3px rgba(79, 212, 138, .2), 0 0 12px rgba(79, 212, 138, .75); }
+.server-status__label { font-size: 12px; color: var(--night-text-dim); font-weight: 600; }
+
+/* The rainbow the goblins are after — a single luminous band rather than
+   separate swatches, though each segment is still one of the 12 note hues. */
+.swatch-strip {
+  display: flex;
+  gap: 0;
+  margin-top: 18px;
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow: 0 0 22px rgba(255, 200, 120, .3), 0 0 44px rgba(150, 80, 220, .28);
+}
+.swatch-strip span { flex: 1; height: 9px; filter: saturate(1.25) brightness(1.06); }
+
+/* ── Layout ──────────────────────────────────────────────── */
+.rack { display: grid; gap: 20px; grid-template-columns: 1fr; }
+@media (min-width: 820px) {
+  .rack {
+    grid-template-columns: 280px 1fr;
+    grid-template-areas: "input chords" "audiotool chords" "positions positions";
+  }
+  .panel--input { grid-area: input; }
+  .panel--chords { grid-area: chords; }
+  .panel--audiotool { grid-area: audiotool; }
+  .panel--positions { grid-area: positions; }
+}
+
+/* ── Panels ──────────────────────────────────────────────── */
+.panel {
+  position: relative;
+  background: linear-gradient(180deg, var(--paper), var(--paper-raised));
+  border: 1px solid rgba(216, 169, 58, .55);
+  border-radius: 14px;
+  padding: 22px 24px;
+  box-shadow: var(--shadow-card);
+}
+/* Gilt hairline just inside the border, like an illuminated page. */
+.panel::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px solid rgba(216, 169, 58, .3);
+  border-radius: 10px;
+  pointer-events: none;
+}
+.panel__title { font-family: var(--font-display); font-weight: 700; font-size: 15px; letter-spacing: .05em; color: var(--text); margin: 0 0 8px; display: flex; align-items: baseline; gap: 8px; }
+.panel__num { color: var(--amber); font-family: var(--font-display); font-size: 13px; }
+.panel__hint { font-size: 13px; color: var(--text-dim); line-height: 1.55; margin: 0 0 16px; }
+
+/* ── Buttons / inputs ────────────────────────────────────── */
+.btn { font-family: var(--font-body); font-weight: 700; font-size: 13px; padding: 11px 18px; border-radius: 9px; border: 1px solid transparent; cursor: pointer; transition: filter .15s ease, transform .05s ease, box-shadow .15s ease; }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: .6; cursor: default; }
+.btn--primary {
+  background: linear-gradient(180deg, #7d4ccb, #5a32a0);
+  color: #fff8ec;
+  border-color: rgba(216, 169, 58, .5);
+  box-shadow: 0 3px 12px rgba(107, 63, 181, .45);
+}
+.btn--primary:hover:not(:disabled) { filter: brightness(1.1); box-shadow: 0 4px 18px rgba(107, 63, 181, .55); }
+.btn--primary.is-active { background: linear-gradient(180deg, #cc4560, #98243a); box-shadow: 0 3px 12px rgba(184, 50, 74, .45); }
+.btn--ghost { background: var(--indigo-soft); color: var(--indigo); border-color: rgba(107, 63, 181, .25); }
+.btn--ghost:hover:not(:disabled) { filter: brightness(.97); }
+.btn--send { background: transparent; color: var(--indigo); border: 1.5px solid rgba(107, 63, 181, .3); font-size: 12px; padding: 6px 12px; border-radius: 8px; }
+.btn--send:hover:not(:disabled) { background: var(--indigo-soft); border-color: var(--indigo); }
+.btn--positions { background: transparent; color: var(--amber); border: 1.5px solid rgba(189, 132, 32, .35); font-size: 12px; padding: 6px 12px; border-radius: 8px; }
+.btn--positions:hover:not(:disabled) { background: rgba(216, 169, 58, .16); border-color: var(--amber); }
+.btn--listen { background: transparent; color: var(--teal); border: 1.5px solid rgba(23, 128, 106, .3); font-size: 12px; padding: 6px 12px; border-radius: 8px; }
+.btn--listen:hover:not(:disabled) { background: rgba(23, 128, 106, .12); border-color: var(--teal); }
+
+.input-controls { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
+.device-select, .text-input { font-family: var(--font-body); font-size: 13px; background: #fffdf6; color: var(--text); border: 1.5px solid var(--line); border-radius: 8px; padding: 9px 12px; width: 100%; }
+.device-select:focus, .text-input:focus { outline: none; border-color: var(--amber); box-shadow: 0 0 0 3px rgba(216, 169, 58, .22); }
+
+/* ── Note display ────────────────────────────────────────── */
+.note-display { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 22px 0 18px; }
+.note-display__note { font-family: var(--font-display); font-weight: 700; font-size: 66px; line-height: 1; color: var(--indigo); transition: transform .2s ease; text-shadow: 0 2px 14px rgba(0, 0, 0, .12); }
+.note-display__note.is-fresh { transform: scale(1.08); }
+.note-display__label { font-size: 10px; text-transform: uppercase; letter-spacing: .14em; color: var(--text-dim); font-weight: 700; }
+
+/* ── Position display ────────────────────────────────────── */
+.position-display { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 0 0 16px; text-align: center; }
+.position-display__label { font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--text-dim); font-weight: 700; }
+.position-display__value { font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--amber); }
+.position-display__caveat { font-size: 11px; color: var(--text-dim); font-style: italic; max-width: 220px; line-height: 1.45; }
+
+/* ── Confidence / meter ──────────────────────────────────── */
+.confidence-row { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+.confidence-label { font-size: 12px; color: var(--text-dim); white-space: nowrap; font-weight: 600; }
+.confidence-value { font-size: 12px; color: var(--text); min-width: 32px; text-align: right; font-weight: 700; }
+.meter { flex: 1; height: 6px; background: rgba(44, 30, 16, .1); border-radius: 3px; overflow: hidden; }
+.meter__fill { height: 100%; width: 0%; background: linear-gradient(90deg, #7d4ccb, #d8a93a); border-radius: 3px; transition: width .1s linear; }
+.status-line { font-size: 12px; color: var(--text-dim); margin: 0; line-height: 1.5; }
+
+/* ── Tabs ────────────────────────────────────────────────── */
+.category-tabs { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+.tab { font-family: var(--font-body); font-weight: 700; font-size: 12.5px; padding: 8px 16px; border-radius: 999px; border: 1.5px solid var(--line); background: #fffdf6; color: var(--text-dim); cursor: pointer; transition: all .15s ease; }
+.tab:hover:not(.is-active) { border-color: var(--amber); color: var(--text); }
+.tab.is-active { background: linear-gradient(180deg, #7d4ccb, #5a32a0); color: #fff8ec; border-color: rgba(216, 169, 58, .55); }
+.tab[data-category="jazz"].is-active { background: linear-gradient(180deg, #d8a93a, #a9741a); }
+.tab[data-category="technical"].is-active { background: linear-gradient(180deg, #1f9c81, #12664f); }
+
+/* ── Chord grid ──────────────────────────────────────────── */
+.chord-grid { display: grid; gap: 16px; grid-template-columns: 1fr; min-height: 200px; }
+@media (min-width: 640px) { .chord-grid { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 980px) { .chord-grid { grid-template-columns: 1fr 1fr 1fr; } }
+.chord-placeholder { font-size: 13px; color: var(--text-dim); margin: auto; text-align: center; grid-column: 1 / -1; padding: 40px 0; font-style: italic; }
+
+/* ── Chord card ──────────────────────────────────────────── */
+.chord-card {
+  background: #fffdf6;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 1px 3px rgba(44, 30, 16, .08);
+  border-left: 4px solid var(--indigo);
+  transition: box-shadow .15s ease, transform .1s ease;
+}
+.chord-card:hover { box-shadow: 0 6px 20px rgba(44, 30, 16, .16); transform: translateY(-2px); }
+.chord-card[data-category="jazz"] { border-left-color: var(--amber); }
+.chord-card[data-category="technical"] { border-left-color: var(--teal); }
+.chord-card__header { display: flex; align-items: baseline; gap: 8px; }
+.chord-card__root { font-family: var(--font-display); font-weight: 700; font-size: 20px; color: var(--indigo); }
+.chord-card[data-category="jazz"] .chord-card__root { color: var(--amber); }
+.chord-card[data-category="technical"] .chord-card__root { color: var(--teal); }
+.chord-card__symbol { font-size: 13px; color: var(--text-dim); font-weight: 600; }
+.chord-card__name { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .1em; font-weight: 700; margin: 0; }
+.chord-card__diagram { background: var(--paper-raised); border: 1px solid rgba(216, 169, 58, .35); border-radius: 10px; padding: 10px 12px 8px; }
+.chord-card__diagram svg { max-width: 190px; margin: 0 auto; }
+.chord-card__notes { display: flex; gap: 6px; flex-wrap: wrap; }
+.chord-card__note-pill { font-size: 11px; padding: 3px 8px; border-radius: 8px; border: 1.5px solid; display: inline-flex; flex-direction: column; align-items: center; line-height: 1.35; }
+.chord-card__note-pill-name { font-weight: 800; }
+.chord-card__note-pill-position { font-size: 8.5px; color: var(--text-dim); text-transform: uppercase; }
+.chord-card__position-note { font-size: 10.5px; color: var(--text-dim); font-style: italic; margin: 0; }
+.chord-card__description { font-size: 12px; color: var(--text-dim); line-height: 1.5; margin: 0; }
+.chord-card__teaching { font-size: 12px; color: var(--text); line-height: 1.5; padding-top: 6px; border-top: 1px solid var(--line); margin: 0; }
+.chord-card__footer { display: flex; justify-content: flex-end; gap: 6px; flex-wrap: wrap; padding-top: 2px; }
+
+/* ── Audiotool section ───────────────────────────────────── */
+.at-row { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.at-row label { font-size: 12px; color: var(--text-dim); white-space: nowrap; font-weight: 600; }
+.at-row .text-input { flex: 1; min-width: 140px; }
+.at-queue { background: linear-gradient(180deg, rgba(216, 169, 58, .16), rgba(107, 63, 181, .12)); border: 1px solid rgba(216, 169, 58, .4); border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; }
+.at-queue__label { font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--text-dim); margin: 0 0 4px; font-weight: 700; }
+.at-queue__chord { font-family: var(--font-display); font-weight: 700; font-size: 21px; color: var(--indigo); margin: 0 0 8px; }
+.at-queue__tip { font-size: 12px; color: var(--text-dim); margin: 0; line-height: 1.5; }
+
+/* ── All positions ───────────────────────────────────────── */
+.positions__chord { font-family: var(--font-display); font-weight: 700; font-size: 16px; color: var(--indigo); margin-left: auto; }
+.positions-grid { display: flex; flex-wrap: wrap; gap: 16px; }
+.position-card {
+  flex: 0 0 auto;
+  width: 190px;
+  background: #fffdf6;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 10px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: box-shadow .15s ease, transform .1s ease;
+}
+.position-card:hover { box-shadow: 0 6px 20px rgba(44, 30, 16, .16); transform: translateY(-2px); }
+.position-card__label { font-family: var(--font-display); font-weight: 700; font-size: 12px; color: var(--text); text-align: center; }
+.position-card__kind { font-size: 9.5px; text-transform: uppercase; letter-spacing: .1em; color: var(--amber); font-weight: 700; text-align: center; }
+.position-card__diagram { width: 100%; }
+.position-card__diagram svg { max-width: 150px; margin: 0 auto; }
+.position-card__actions { display: flex; gap: 6px; align-items: center; justify-content: center; padding-top: 2px; }
+.position-card__actions .btn--listen { padding: 6px 9px; font-size: 13px; line-height: 1; }
+
+/* ── Panel header row / input swap ───────────────────────── */
+.panel__header-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.panel__header-row .panel__title { margin: 0; }
+
+.swap-btn { flex-shrink: 0; width: 30px; height: 30px; padding: 0; border: 1.5px solid rgba(216, 169, 58, .5); border-radius: 50%; background: #fffdf6; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; line-height: 1; transition: background .15s ease, border-color .15s ease, transform .1s ease; }
+.swap-btn:hover { background: rgba(216, 169, 58, .18); border-color: var(--amber); }
+.swap-btn:active { transform: scale(.92); }
+
+/* ── Guitar ──────────────────────────────────────────────── */
+/* padding-left reserves room for the fret numbers, which sit just outside
+   the neck's left edge and would otherwise be clipped by the panel. */
+.guitar { display: flex; flex-direction: column; align-items: center; margin: 0 auto; width: 100%; max-width: 224px; padding-left: 26px; }
+
+.guitar__headstock {
+  display: flex;
+  justify-content: space-between;
+  width: 66%;
+  padding: 10px 8px 12px;
+  background: linear-gradient(180deg, #33210f, #4d3419);
+  border-radius: 8px 8px 3px 3px;
+  box-shadow: inset 0 1px 0 rgba(255, 226, 168, .2);
+}
+.guitar__peg { width: 7px; height: 7px; border-radius: 50%; background: linear-gradient(180deg, #f4dd9c, #c79a34); box-shadow: 0 1px 1px rgba(0, 0, 0, .45); }
+.guitar__peg:nth-child(even) { transform: translateY(5px); }
+
+.guitar__nut {
+  width: 100%;
+  height: 7px;
+  background: linear-gradient(180deg, #f7efdc, #ddcaa5);
+  border-radius: 3px 3px 0 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .35);
+}
+
+.guitar__neck {
+  position: relative;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(13, minmax(26px, auto));
+  background: linear-gradient(90deg, #5a3315 0%, #8a5227 12%, #9e6531 50%, #8a5227 88%, #5a3315 100%);
+  border-radius: 0 0 10px 10px;
+  padding: 2px 8px 6px;
+  box-shadow: inset 0 0 16px rgba(25, 10, 0, .5), 0 8px 22px rgba(10, 6, 24, .35);
+}
+
+.guitar__string {
+  grid-row: 1 / -1;
+  justify-self: center;
+  width: var(--string-thickness, 2px);
+  height: 100%;
+  background: linear-gradient(90deg, rgba(255, 244, 214, .35), #f6ecd0 45%, rgba(150, 122, 70, .85));
+  border-radius: 1px;
+}
+
+.guitar__fret-wire {
+  grid-column: 1 / -1;
+  align-self: start;
+  height: 3px;
+  background: linear-gradient(180deg, #f6e6bd, #b08c46);
+  border-radius: 2px;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, .4);
+}
+
+.guitar__inlay {
+  grid-column: 1 / -1;
+  justify-self: center;
+  align-self: center;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fffdf2, #e2d3ad);
+  box-shadow: 0 0 4px rgba(255, 235, 180, .5);
+}
+.guitar__inlay--double {
+  background: transparent;
+  box-shadow: -13px 0 0 #ecdfba, 13px 0 0 #ecdfba;
+}
+
+.guitar__fret-label {
+  grid-column: 1;
+  justify-self: start;
+  align-self: center;
+  transform: translateX(-30px);
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-dim);
+  width: 20px;
+  text-align: right;
+}
+
+.guitar__fret-btn {
+  justify-self: center;
+  align-self: center;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 240, 205, .5);
+  background: rgba(255, 240, 205, .14);
+  cursor: pointer;
+  padding: 0;
+  transition: transform .1s ease, background .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+.guitar__fret-btn:hover { background: var(--dot-color); border-color: #fff6e2; transform: scale(1.15); }
+.guitar__fret-btn.is-active {
+  background: var(--dot-color);
+  border-color: #fff6e2;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--dot-color) 35%, transparent), 0 0 12px color-mix(in srgb, var(--dot-color) 70%, transparent);
+  transform: scale(1.2);
+}
+
+/* ── Footer ──────────────────────────────────────────────── */
+.rack-footer { margin-top: 40px; display: flex; gap: 10px; font-size: 11px; color: var(--night-text-dim); justify-content: center; flex-wrap: wrap; }
+.dot-sep { opacity: .5; }
+
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  .note-display__note, .chord-card, .position-card { transition: none; }
+}
