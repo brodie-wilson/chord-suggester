@@ -3,9 +3,14 @@
 Play a note on your guitar, see every chord you can build from it, and send
 any chord straight into an Audiotool project.
 
+**Live: https://chord-suggester.vercel.app**
+
+No install and no token — sign in with your own Audiotool account and the
+chords go into your own projects.
+
 ## Using it
 
-1. Open the app and click **Log in with Audiotool** — you sign in with your own
+1. Open [the app](https://chord-suggester.vercel.app) and click **Log in with Audiotool** — you sign in with your own
    account, and chords go into your own projects
 2. Pick a project from the dropdown (or click **New project**), then **Open**
 3. Click **Start listening** and play a note — or switch to the on-screen
