@@ -20,6 +20,17 @@ import { getAllChordShapes } from "./chord-shapes.ts"
 import { noteColor, noteColorSoft } from "./note-colors.ts"
 import { renderGuitarWidget } from "./guitar-widget.ts"
 import { playChord, playPitches, CHORD_DURATION_MS } from "./chord-audio.ts"
+import {
+  MissingClientIdError,
+  closeProject,
+  createProject,
+  initAuth,
+  isProjectOpen,
+  listProjects,
+  logout,
+  openProject,
+  sendChord,
+} from "./audiotool.ts"
 
 // ── Element refs ─────────────────────────────────────────────────────────
 const micBtn = document.querySelector<HTMLButtonElement>("#mic-btn")!
@@ -35,7 +46,16 @@ const atHint = document.querySelector<HTMLParagraphElement>("#at-hint")!
 const atControls = document.querySelector<HTMLDivElement>("#at-controls")!
 const atQueue = document.querySelector<HTMLDivElement>("#at-queue")!
 const projectUrlInput = document.querySelector<HTMLInputElement>("#project-url")!
+const projectUrlRow = document.querySelector<HTMLDivElement>("#project-url-row")!
+const projectSelect = document.querySelector<HTMLSelectElement>("#project-select")!
 const openProjectBtn = document.querySelector<HTMLButtonElement>("#open-project-btn")!
+const openUrlBtn = document.querySelector<HTMLButtonElement>("#open-url-btn")!
+const newProjectBtn = document.querySelector<HTMLButtonElement>("#new-project-btn")!
+const pasteUrlToggle = document.querySelector<HTMLButtonElement>("#paste-url-toggle")!
+const atLogin = document.querySelector<HTMLDivElement>("#at-login")!
+const loginBtn = document.querySelector<HTMLButtonElement>("#login-btn")!
+const logoutBtn = document.querySelector<HTMLButtonElement>("#logout-btn")!
+const dawLink = document.querySelector<HTMLAnchorElement>("#daw-link")!
 const lastSentChord = document.querySelector<HTMLParagraphElement>("#last-sent-chord")!
 const atStatus = document.querySelector<HTMLParagraphElement>("#at-status")!
 const serverDot = document.querySelector<HTMLSpanElement>("#server-dot")!
@@ -60,7 +80,6 @@ let currentCategory: ChordCategory = "standard"
 let currentRootIndex = -1
 let currentPosition: FretPosition | null = null
 let audioLoop: number | null = null
-let projectIsOpen = false
 let floatBuf = new Float32Array(8192)
 /** Chord whose positions the "All positions" panel is showing, if any. */
 let positionsChordId: string | null = null
@@ -328,6 +347,7 @@ function renderPositions() {
     card.append(label, kind, diagram, actions)
     positionsGrid.appendChild(card)
   }
+  updateSendButtons()
 }
 
 function clearPositions() {
@@ -348,6 +368,8 @@ function renderChords(rootIndex: number, category: ChordCategory, position: Fret
   })
   // Keep the positions panel in step with whatever root is now detected.
   renderPositions()
+  // Cards are rebuilt from scratch, so the new Send buttons need re-gating.
+  updateSendButtons()
 }
 
 function buildChordCard(
@@ -469,79 +491,160 @@ document.querySelectorAll<HTMLButtonElement>(".tab").forEach(tab => {
   })
 })
 
-// ── Audiotool via the local bridge server ────────────────────────────────
-// The browser SDK's OAuth login needs eval/WASM that some locked-down
-// environments block outright. All Audiotool work is done by
-// scripts/chord-server.mjs running in Node instead, which has no such
-// restriction. The browser just makes plain fetch calls to it.
+// ── Audiotool ─────────────────────────────────────────────────────────────
+// OAuth2 PKCE runs entirely in the browser: the user signs in with their own
+// Audiotool account, so there is no server and no shared token. src/audiotool.ts
+// owns all the SDK state; everything below is UI.
 
-function bridgeErrorMessage(err: Error): string {
-  const msg = err.message ?? String(err)
-  if (
-    msg.includes("Failed to fetch") ||
-    msg.includes("NetworkError") ||
-    msg.includes("load failed")
-  ) {
-    return "Can't reach the local server. Start it in a second terminal: AUDIOTOOL_PAT=your_token npm run server"
+let signedIn = false
+
+function setStatusDot(online: boolean, label: string) {
+  serverDot.classList.toggle("is-online", online)
+  serverLabel.textContent = label
+}
+
+function audiotoolErrorMessage(err: unknown): string {
+  if (err instanceof MissingClientIdError) return err.message
+  const msg = err instanceof Error ? err.message : String(err)
+  if (msg.includes("Failed to fetch") || msg.includes("NetworkError") || msg.includes("load failed")) {
+    return "Can't reach Audiotool. Check your connection and try again."
   }
   return `Error: ${msg}`
 }
 
-async function checkServer() {
+// Sending is the only thing that needs an account — the chord explorer itself
+// stays fully usable while signed out.
+function updateSendButtons() {
+  const enabled = signedIn && isProjectOpen()
+  document.querySelectorAll<HTMLButtonElement>(".btn--send").forEach(btn => {
+    btn.disabled = !enabled
+    btn.title = enabled ? "" : signedIn ? "Open a project first" : "Log in with Audiotool first"
+  })
+}
+
+async function refreshProjectList() {
   try {
-    const res = await fetch("/api/status")
-    if (!res.ok) throw new Error(`Status ${res.status}`)
-    const data = await res.json()
-    serverDot.classList.add("is-online")
-    serverLabel.textContent = "Server connected"
-    if (data.projectOpen && data.project) {
-      projectIsOpen = true
-      if (!projectUrlInput.value.trim()) projectUrlInput.value = data.project
-      atStatus.textContent = "Project already open — click any chord to send it"
-      atQueue.hidden = false
-    } else if (!projectIsOpen) {
-      atStatus.textContent = "Server ready — paste a project URL and click Open"
+    const projects = await listProjects()
+    projectSelect.innerHTML = ""
+    if (projects.length === 0) {
+      projectSelect.innerHTML = '<option value="">No projects yet — click New project</option>'
+      return
     }
-  } catch {
-    serverDot.classList.remove("is-online")
-    serverLabel.textContent = "Server offline"
-    atStatus.textContent =
-      "Local server not running. In a second terminal: AUDIOTOOL_PAT=your_token npm run server"
+    for (const p of projects) {
+      const opt = document.createElement("option")
+      opt.value = p.name
+      opt.textContent = p.displayName
+      projectSelect.appendChild(opt)
+    }
+  } catch (err) {
+    projectSelect.innerHTML = '<option value="">Could not load projects</option>'
+    atStatus.textContent = audiotoolErrorMessage(err)
   }
 }
 
-openProjectBtn.addEventListener("click", async () => {
-  const url = projectUrlInput.value.trim()
-  if (!url) return
-
-  // The sync protocol only works against beta.audiotool.com — easy mix-up
-  // since the domains look so similar, so catch it before a failed attempt.
-  if (url.includes("www.audiotool.com")) {
-    atStatus.textContent =
-      "That's a www.audiotool.com link — swap it for the same project on beta.audiotool.com."
-    return
-  }
-
-  atStatus.textContent = "Opening project…"
+async function connectToProject(ref: string, label: string) {
+  atStatus.textContent = `Opening ${label}…`
   openProjectBtn.disabled = true
+  openUrlBtn.disabled = true
   try {
-    const res = await fetch("/api/open-project", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ projectUrl: url }),
+    const { dawUrl } = await openProject(ref, connected => {
+      // The session stays live, so surface a dropped connection immediately —
+      // changes made while disconnected would be lost on reload.
+      if (signedIn) {
+        setStatusDot(connected, connected ? `Syncing to ${label}` : "Reconnecting…")
+      }
     })
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.error ?? `Request failed (${res.status})`)
-
-    projectIsOpen = true
-    atStatus.textContent = "Project open — click any chord card to send it to your workspace"
+    dawLink.href = dawUrl
+    dawLink.hidden = false
     atQueue.hidden = false
+    atStatus.textContent = "Project open — click any chord card to send it to your workspace"
+    updateSendButtons()
   } catch (err) {
-    atStatus.textContent = bridgeErrorMessage(err as Error)
+    atStatus.textContent = audiotoolErrorMessage(err)
+    setStatusDot(true, "Signed in")
   } finally {
     openProjectBtn.disabled = false
+    openUrlBtn.disabled = false
+  }
+}
+
+openProjectBtn.addEventListener("click", () => {
+  const name = projectSelect.value
+  if (!name) {
+    atStatus.textContent = "Pick a project, or click New project to make one."
+    return
+  }
+  const label = projectSelect.options[projectSelect.selectedIndex]?.text ?? "project"
+  void connectToProject(name, label)
+})
+
+openUrlBtn.addEventListener("click", () => {
+  const url = projectUrlInput.value.trim()
+  if (!url) return
+  void connectToProject(url, "project")
+})
+
+newProjectBtn.addEventListener("click", async () => {
+  newProjectBtn.disabled = true
+  atStatus.textContent = "Creating project…"
+  try {
+    const project = await createProject("Chord Suggester")
+    await refreshProjectList()
+    projectSelect.value = project.name
+    await connectToProject(project.name, project.displayName)
+  } catch (err) {
+    atStatus.textContent = audiotoolErrorMessage(err)
+  } finally {
+    newProjectBtn.disabled = false
   }
 })
+
+pasteUrlToggle.addEventListener("click", () => {
+  projectUrlRow.hidden = !projectUrlRow.hidden
+  pasteUrlToggle.textContent = projectUrlRow.hidden ? "Paste a URL instead" : "Hide URL field"
+})
+
+loginBtn.addEventListener("click", () => void startLogin())
+logoutBtn.addEventListener("click", () => logout())
+
+let pendingLogin: (() => void) | null = null
+
+function startLogin() {
+  if (pendingLogin) pendingLogin()
+}
+
+async function initAudiotool() {
+  try {
+    const auth = await initAuth()
+
+    if (auth.status === "authenticated") {
+      signedIn = true
+      atLogin.hidden = true
+      atControls.hidden = false
+      logoutBtn.hidden = false
+      setStatusDot(true, `Signed in as ${auth.userName}`)
+      atHint.textContent = "Pick a project (or create one), then send any chord straight into it."
+      atStatus.textContent = "Loading your projects…"
+      await refreshProjectList()
+      atStatus.textContent = "Pick a project and click Open."
+    } else {
+      pendingLogin = auth.login
+      atLogin.hidden = false
+      atControls.hidden = true
+      logoutBtn.hidden = true
+      setStatusDot(false, "Not signed in")
+      atStatus.textContent = auth.error
+        ? `Sign-in failed: ${auth.error.message}`
+        : "Log in with your Audiotool account to send chords into a project."
+    }
+  } catch (err) {
+    atLogin.hidden = true
+    atControls.hidden = true
+    setStatusDot(false, "Unavailable")
+    atStatus.textContent = audiotoolErrorMessage(err)
+  }
+  updateSendButtons()
+}
 
 async function sendChordToAudiotool(
   rootName: string,
@@ -550,13 +653,12 @@ async function sendChordToAudiotool(
   btn: HTMLButtonElement,
   opts: { pitches?: number[]; nameSuffix?: string } = {},
 ) {
-  const projectUrl = projectUrlInput.value.trim()
-  if (!projectUrl) {
-    atStatus.textContent = "Paste a project URL and click Open first."
+  if (!signedIn) {
+    atStatus.textContent = "Log in with Audiotool first."
     return
   }
-  if (!projectIsOpen) {
-    atStatus.textContent = "Click Open first to connect to the project."
+  if (!isProjectOpen()) {
+    atStatus.textContent = "Open a project first."
     return
   }
 
@@ -565,13 +667,7 @@ async function sendChordToAudiotool(
   btn.textContent = "Sending…"
   btn.disabled = true
   try {
-    const res = await fetch("/api/send-chord", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ projectUrl, chordName, notes, pitches: opts.pitches }),
-    })
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.error ?? `Request failed (${res.status})`)
+    await sendChord(chordName, notes, opts.pitches)
 
     lastSentChord.textContent = chordName
     atQueue.hidden = false
@@ -581,16 +677,21 @@ async function sendChordToAudiotool(
       btn.textContent = originalText
     }, 1200)
   } catch (err) {
-    atStatus.textContent = bridgeErrorMessage(err as Error)
+    atStatus.textContent = audiotoolErrorMessage(err)
     btn.textContent = originalText
   } finally {
     btn.disabled = false
   }
 }
 
+// modify() only guarantees the transaction was built — stop() is what
+// guarantees it reached the backend. The live session means that flush has to
+// happen on the way out.
+window.addEventListener("pagehide", () => {
+  void closeProject()
+})
+
 // ── Init ──────────────────────────────────────────────────────────────────
-atControls.hidden = false
 atHint.textContent =
-  "Paste a beta.audiotool.com project URL and click Open, then send any chord straight into your workspace."
-void checkServer()
-setInterval(() => void checkServer(), 10000)
+  "Sign in with your Audiotool account to send any chord straight into one of your projects."
+void initAudiotool()

@@ -4,8 +4,6 @@
       "WebFetch(domain:developer.audiotool.com)",
       "Bash(xargs ls -la)",
       "Bash(env)",
-      "Bash(node --check scripts/chord-server.mjs)",
-      "Bash(node scripts/chord-server.mjs)",
       "Bash(echo \"EXIT CODE: $?\")",
       "Bash(npx tsc *)",
       "Bash(npx tsx *)",

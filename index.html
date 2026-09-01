@@ -16,7 +16,8 @@
           <p class="rack-header__sub">play a note — see every chord you can build from it</p>
           <div class="server-status">
             <span class="server-status__dot" id="server-dot" aria-hidden="true"></span>
-            <span class="server-status__label" id="server-label">Checking server…</span>
+            <span class="server-status__label" id="server-label">Checking sign-in…</span>
+            <button id="logout-btn" class="server-status__logout" type="button" hidden>Log out</button>
           </div>
         </div>
         <div class="swatch-strip" aria-hidden="true">
@@ -92,21 +93,39 @@
         <section class="panel panel--audiotool" aria-labelledby="at-title">
           <h2 id="at-title" class="panel__title"><span class="panel__num">03</span> Audiotool</h2>
           <p class="panel__hint" id="at-hint">
-            Paste a beta.audiotool.com project URL and click Open, then send any chord straight into your workspace.
+            Sign in with your Audiotool account to send any chord straight into one of your projects.
           </p>
+
+          <div class="at-login" id="at-login" hidden>
+            <button id="login-btn" class="btn btn--primary">Log in with Audiotool</button>
+          </div>
+
           <div class="at-controls" id="at-controls" hidden>
             <div class="at-row">
-              <label for="project-url">Project URL</label>
-              <input id="project-url" class="text-input" type="text" placeholder="https://beta.audiotool.com/studio?project=..." />
+              <label for="project-select">Project</label>
+              <select id="project-select" class="device-select">
+                <option value="">Loading your projects…</option>
+              </select>
               <button id="open-project-btn" class="btn btn--ghost">Open</button>
             </div>
+            <div class="at-row">
+              <button id="new-project-btn" class="btn btn--ghost">New project</button>
+              <button id="paste-url-toggle" class="btn btn--ghost" type="button">Paste a URL instead</button>
+            </div>
+            <div class="at-row" id="project-url-row" hidden>
+              <label for="project-url">Project URL</label>
+              <input id="project-url" class="text-input" type="text" placeholder="https://beta.audiotool.com/studio?project=..." />
+              <button id="open-url-btn" class="btn btn--ghost">Open</button>
+            </div>
           </div>
+
           <div class="at-queue" id="at-queue" hidden>
             <p class="at-queue__label">Last chord sent</p>
             <p class="at-queue__chord" id="last-sent-chord">—</p>
             <p class="at-queue__tip">Click <strong>Send to Audiotool</strong> on any chord card to add it to your project.</p>
+            <a id="daw-link" class="at-queue__link" href="#" target="_blank" rel="noopener" hidden>Open in Audiotool ↗</a>
           </div>
-          <p class="status-line" id="at-status">Checking for local server…</p>
+          <p class="status-line" id="at-status">Checking Audiotool sign-in…</p>
         </section>
 
         <section class="panel panel--positions" aria-labelledby="positions-title">
@@ -124,7 +143,7 @@
       <footer class="rack-footer">
         <span>Web Audio API · YIN pitch detection</span>
         <span class="dot-sep">·</span>
-        <span>Audiotool Nexus via local bridge</span>
+        <span>Audiotool Nexus SDK</span>
       </footer>
     </div>
     <script type="module" src="/src/main.ts"></script>

@@ -6,8 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview",
-    "server": "node scripts/chord-server.mjs"
+    "preview": "vite preview"
   },
   "devDependencies": {
     "typescript": "~6.0.2",
