@@ -15,6 +15,19 @@ export default defineConfig(({ mode }) => {
   }
 
   return {
+    build: {
+      // The Audiotool SDK identifies its Pointer type by comparing
+      // Function.name (`t.T.name === Pointer.name`). Default minification
+      // mangles class names, so that check misfires and entity creation dies
+      // with "Cannot read properties of undefined (reading 'slice')" — the
+      // dev server is unaffected because it doesn't minify. Terser with
+      // keep_classnames preserves the names the comparison relies on.
+      minify: "terser" as const,
+      terserOptions: {
+        keep_classnames: true,
+        keep_fnames: true,
+      },
+    },
     server: {
       // OAuth redirects must come back to 127.0.0.1 — Audiotool rejects
       // "localhost" as a redirect URI host, so the dev server must not
