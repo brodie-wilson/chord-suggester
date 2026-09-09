@@ -273,3 +273,40 @@ export function getChordShape(rootChroma: number, chordId: string, anchorFret: n
   }
   return best
 }
+
+// ── Shape presentation helpers ───────────────────────────────────────────
+// Shared by the chord explorer and the practice game so both describe a
+// fingering the same way.
+
+/** The CAGED forms — every shape is one of the five open chords moved up. */
+export const KIND_LABELS: Record<ShapeKind, string> = {
+  "c-shape": "C shape",
+  "a-shape": "A shape",
+  "g-shape": "G shape",
+  "e-shape": "E shape",
+  "d-shape": "D shape",
+}
+
+function ordinal(n: number): string {
+  const teen = n % 100
+  if (teen >= 11 && teen <= 13) return `${n}th`
+  return `${n}${["th", "st", "nd", "rd"][n % 10] ?? "th"}`
+}
+
+/** "Open position" / "3rd position" — where on the neck a shape is read from. */
+export function describeShapePosition(shape: CuratedShape): string {
+  return shape.baseFret === 0 ? "Open position" : `${ordinal(shape.baseFret)} position`
+}
+
+/** Short form for labels and Audiotool device names: "open" / "3rd pos". */
+export function shortShapePosition(shape: CuratedShape): string {
+  return shape.baseFret === 0 ? "open" : `${ordinal(shape.baseFret)} pos`
+}
+
+/** The actual sounding pitches of a fingering, low string to high. */
+export function shapePitches(frets: (number | null)[]): number[] {
+  return frets
+    .map((fret, string) => (fret === null ? null : OPEN_STRING_MIDI[string] + fret))
+    .filter((m): m is number => m !== null)
+    .sort((a, b) => a - b)
+}

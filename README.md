@@ -20,6 +20,17 @@ chords go into your own projects.
 Chords appear in the DAW live while the project is open, so it's worth keeping
 the Audiotool tab open next to the app — use the **Open in Audiotool ↗** link.
 
+## Beat the Clock
+
+Hit **🎯 Practice** in the header for a timed drill: a chord name flashes and
+you have five seconds to pick its fingering out of four diagrams. Decoys are
+drawn from near-misses — the same root with a different quality, or the same
+quality a fret or two away — so they genuinely look alike on the neck.
+
+Filter the mix by chord type (standard / jazz / technical), shape (open /
+barre) and where it sits on the neck. It needs no account, so you can play it
+without signing in.
+
 The chord explorer works without signing in. Only sending needs an account.
 
 ## local host Setup
