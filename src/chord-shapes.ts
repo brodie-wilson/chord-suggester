@@ -231,22 +231,45 @@ export function getAllChordShapes(rootChroma: number, chordId: string): CuratedS
 }
 
 /**
+ * The E and A forms are the barre chords everyone means by "the barre chord
+ * at this fret" — their whole shape sits at the root. The C, G and D forms
+ * also carry a root, but their shape trails several frets behind it, so
+ * they're the secondary choice when both fit equally well.
+ */
+const FAMILY_RANK: Record<ShapeKind, number> = {
+  "e-shape": 0,
+  "a-shape": 0,
+  "c-shape": 1,
+  "g-shape": 1,
+  "d-shape": 1,
+}
+
+/**
  * Picks whichever position sits closest to the fret you actually played, so
  * the same chord shows a different, still-correct fingering depending on
  * where on the neck you are.
+ *
+ * Ties are common, because two families can root on the same string — the G
+ * and E forms both root on the low E. They're broken by preferring an open
+ * chord (playing G at the 3rd fret should give you open G, not a barre),
+ * then by preferring the standard barre form (playing A at the 5th fret
+ * should give the A barre chord, not the G form trailing down to fret 2).
  */
 export function getChordShape(rootChroma: number, chordId: string, anchorFret: number): CuratedShape | null {
   const shapes = getAllChordShapes(rootChroma, chordId)
   if (shapes.length === 0) return null
 
+  const score = (s: CuratedShape): [number, number, number] => [
+    Math.abs(s.rootFret - anchorFret),
+    s.baseFret === 0 ? 0 : 1,
+    FAMILY_RANK[s.kind],
+  ]
+
   let best = shapes[0]
-  let bestDistance = Math.abs(best.rootFret - anchorFret)
   for (const shape of shapes.slice(1)) {
-    const distance = Math.abs(shape.rootFret - anchorFret)
-    if (distance < bestDistance) {
-      best = shape
-      bestDistance = distance
-    }
+    const a = score(shape)
+    const b = score(best)
+    if (a[0] !== b[0] ? a[0] < b[0] : a[1] !== b[1] ? a[1] < b[1] : a[2] < b[2]) best = shape
   }
   return best
 }
