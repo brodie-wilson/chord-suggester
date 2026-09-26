@@ -22,7 +22,7 @@ the Audiotool tab open next to the app — use the **Open in Audiotool ↗** lin
 
 The chord explorer works without signing in. Only sending needs an account.
 
-## Setup
+## local host Setup
 
 ```bash
 npm install
