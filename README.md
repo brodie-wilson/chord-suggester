@@ -12,31 +12,47 @@ account and chords land in your own projects.
 
 ## Try it in 60 seconds
 
-**Without signing in** — click **🎸** in panel 01 to switch to the on-screen
-guitar, click any fret, and the chord grid fills with everything built on that
-note. Or hit **🎯 Practice** in the header for the timed game.
+**No account needed for most of it.** Click **🎸** in panel 01 to switch to the
+on-screen guitar and click any fret — the chord grid fills with everything
+built on that note. Or hit **🎯 Practice** in the header for the timed game.
+Only *sending* a chord needs an Audiotool login.
 
-**With Audiotool** — click **Log in with Audiotool**, pick a project (or
-**New project**), then **Send to Audiotool** on any chord card. Keep the DAW
-open in a second tab via the **Open in Audiotool ↗** link: chords appear
-**live**, while you click, with no reload.
+## Walkthrough
 
-## What it does
+### 1 · Find chords from one note
 
-**1 · Find chords from one note.** Play a note into the mic (YIN pitch
-detection) or click the on-screen neck. Every chord containing that note
-appears as a card with a real fingering, the notes it contains, and a plain-English
-note on what it sounds like. Tabs split them into Standard, Jazz and Technical.
+Play a note into the mic (YIN pitch detection) or click the on-screen neck.
+Every chord containing that note appears as a card with a real fingering, the
+notes it contains, and a plain-English line on what it sounds like. Tabs split
+them into Standard, Jazz and Technical.
 
-**2 · Show every way to play it.** *All positions* opens the same chord
-everywhere it lives on the neck, using the CAGED system — the five movable
-shapes a guitarist actually learns. Each position sends its own voicing, so an
-open C and a C barred at the 8th fret arrive in Audiotool in the octaves you'd
-really play them.
+![Clicking F on the on-screen neck fills the grid with every chord built on F](docs/walkthrough/01-explore.png)
 
-**3 · Beat the Clock.** A chord name flashes and you have five seconds to pick
-its fingering out of four diagrams. Filter by chord type (standard / jazz /
-technical), shape (open / barre) and neck position.
+### 2 · See every way to play it
+
+**All positions** opens the same chord everywhere it lives on the neck, using
+the CAGED system — the five movable shapes a guitarist actually learns. Below,
+one F major as all five: E, D, C, A and G forms, from the 1st to the 10th
+position.
+
+Each position sends its own voicing, so an open C and a C barred at the 8th
+fret arrive in Audiotool in the octaves you'd really play them.
+
+![F major shown as five CAGED shapes across the neck](docs/walkthrough/02-positions.png)
+
+### 3 · Send it to Audiotool
+
+Sign in, pick a project (or create one), then **Send to Audiotool** on any
+chord card. Keep the DAW open in a second tab via **Open in Audiotool ↗** —
+chords appear **live**, as you click, with no reload.
+
+### 4 · Beat the Clock
+
+A chord name flashes and you have five seconds to pick its fingering out of
+four diagrams. Filter the pool by chord type, shape and neck position; the
+count updates as you toggle.
+
+![The game's filter bar: chord type, shape and neck position, with 720 fingerings in the mix](docs/walkthrough/03-game-setup.png)
 
 The decoys are the interesting part. The prompt is a chord name alone, so *any*
 fingering of that chord is correct — every decoy has to be a different chord.
@@ -44,6 +60,10 @@ Chosen at random they'd be obvious, so they're drawn from near-misses first:
 the same root with a different quality, or the same quality rooted a fret or
 two away. Every round is guaranteed exactly one correct answer and four
 visually distinct diagrams.
+
+Four plausible barre shapes, one clock:
+
+![A round in progress: the prompt D6, a draining timer and four candidate fingerings](docs/walkthrough/04-game-round.png)
 
 ## How it uses Audiotool
 
