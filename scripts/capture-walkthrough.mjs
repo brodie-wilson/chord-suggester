@@ -150,21 +150,24 @@ await evaluate(`
 `)
 await shoot("02-positions", ".panel--positions", 0)
 
-// 3 — the game's filter setup
+// NOTE: 03-audiotool-daw.png is a frame pulled from docs/demo.mp4, not
+// captured here — it needs a signed-in Audiotool session.
+
+// 4 — the game's filter setup
 await evaluate(`
   scrollTo(0, 0);
   document.querySelector('#practice-btn').click();
   await new Promise(r => setTimeout(r, 500));
 `)
-await shoot("03-game-setup", "#game-setup", 0)
+await shoot("04-game-setup", "#game-setup", 0)
 
-// 4 — a live round, caught mid-timer. The prompt and shapes are random, so
+// 5 — a live round, caught mid-timer. The prompt and shapes are random, so
 // this frame differs run to run; that's fine, any round illustrates it.
 await evaluate(`
   document.querySelector('#game-start').click();
   await new Promise(r => setTimeout(r, 900));
 `)
-await shoot("04-game-round", "#game-play", 0)
+await shoot("05-game-round", "#game-play", 0)
 
 console.log("done")
 ws.close()

@@ -8,6 +8,13 @@ chord straight into an Audiotool project.**
 No install, no token, nothing to set up. Sign in with your own Audiotool
 account and chords land in your own projects.
 
+## Demo
+
+[![Watch the demo](docs/demo-poster.png)](docs/demo.mp4)
+
+**▶ [Full walkthrough — 2 minutes](docs/demo.mp4)** · playing a note, building
+the chord from it, sending it to Audiotool, and watching it land in the DAW.
+
 ---
 
 ## Try it in 60 seconds
@@ -46,13 +53,17 @@ Sign in, pick a project (or create one), then **Send to Audiotool** on any
 chord card. Keep the DAW open in a second tab via **Open in Audiotool ↗** —
 chords appear **live**, as you click, with no reload.
 
+Two chords sent from the app, arriving as their own devices and note regions:
+
+![The Audiotool DAW with EMajor and AMajor regions on the timeline](docs/walkthrough/03-audiotool-daw.png)
+
 ### 4 · Beat the Clock
 
 A chord name flashes and you have five seconds to pick its fingering out of
 four diagrams. Filter the pool by chord type, shape and neck position; the
 count updates as you toggle.
 
-![The game's filter bar: chord type, shape and neck position, with 720 fingerings in the mix](docs/walkthrough/03-game-setup.png)
+![The game's filter bar: chord type, shape and neck position, with 720 fingerings in the mix](docs/walkthrough/04-game-setup.png)
 
 The decoys are the interesting part. The prompt is a chord name alone, so *any*
 fingering of that chord is correct — every decoy has to be a different chord.
@@ -63,7 +74,7 @@ visually distinct diagrams.
 
 Four plausible barre shapes, one clock:
 
-![A round in progress: the prompt D6, a draining timer and four candidate fingerings](docs/walkthrough/04-game-round.png)
+![A round in progress: the prompt D6, a draining timer and four candidate fingerings](docs/walkthrough/05-game-round.png)
 
 ## How it uses Audiotool
 
