@@ -12,14 +12,20 @@ import {
   suggestPosition,
   findNearbyPositions,
   formatPosition,
-  OPEN_STRING_MIDI,
   type FretPosition,
 } from "./fretboard.ts"
 import { deriveVoicing, renderChordDiagramSVG, shapeToDiagram } from "./chord-diagram.ts"
-import { getAllChordShapes } from "./chord-shapes.ts"
+import {
+  KIND_LABELS,
+  describeShapePosition,
+  getAllChordShapes,
+  shapePitches,
+  shortShapePosition,
+} from "./chord-shapes.ts"
 import { noteColor, noteColorSoft } from "./note-colors.ts"
 import { renderGuitarWidget } from "./guitar-widget.ts"
 import { playChord, playPitches, CHORD_DURATION_MS } from "./chord-audio.ts"
+import { openGame } from "./chord-game.ts"
 import {
   MissingClientIdError,
   closeProject,
@@ -248,29 +254,6 @@ inputSourceToggle.addEventListener("click", () => {
 applyInputSource()
 
 // ── All positions ─────────────────────────────────────────────────────────
-function ordinal(n: number): string {
-  const teen = n % 100
-  if (teen >= 11 && teen <= 13) return `${n}th`
-  return `${n}${["th", "st", "nd", "rd"][n % 10] ?? "th"}`
-}
-
-// The CAGED forms — every shape is one of the five open chords moved up.
-const KIND_LABELS: Record<string, string> = {
-  "c-shape": "C shape",
-  "a-shape": "A shape",
-  "g-shape": "G shape",
-  "e-shape": "E shape",
-  "d-shape": "D shape",
-}
-
-/** The actual sounding pitches of a fingering, low string to high. */
-function shapePitches(frets: (number | null)[]): number[] {
-  return frets
-    .map((fret, string) => (fret === null ? null : OPEN_STRING_MIDI[string] + fret))
-    .filter((m): m is number => m !== null)
-    .sort((a, b) => a - b)
-}
-
 function renderPositions() {
   if (positionsChordId === null || currentRootIndex < 0) return
 
@@ -300,7 +283,7 @@ function renderPositions() {
 
     const label = document.createElement("p")
     label.className = "position-card__label"
-    label.textContent = shape.baseFret === 0 ? "Open position" : `${ordinal(shape.baseFret)} position`
+    label.textContent = describeShapePosition(shape)
 
     const kind = document.createElement("p")
     kind.className = "position-card__kind"
@@ -314,7 +297,7 @@ function renderPositions() {
     // Each position sends its own voicing, so an open C and a C up at the
     // 8th fret arrive in Audiotool in the octaves you'd actually play them.
     const pitches = shapePitches(shape.frets)
-    const positionName = shape.baseFret === 0 ? "open" : `${ordinal(shape.baseFret)} pos`
+    const positionName = shortShapePosition(shape)
 
     const actions = document.createElement("div")
     actions.className = "position-card__actions"
@@ -690,6 +673,12 @@ async function sendChordToAudiotool(
 window.addEventListener("pagehide", () => {
   void closeProject()
 })
+
+// ── Practice game ─────────────────────────────────────────────────────────
+// Self-contained and independent of Audiotool — it works signed out.
+const practiceBtn = document.querySelector<HTMLButtonElement>("#practice-btn")!
+const gameOverlay = document.querySelector<HTMLDivElement>("#game-overlay")!
+practiceBtn.addEventListener("click", () => openGame(gameOverlay))
 
 // ── Init ──────────────────────────────────────────────────────────────────
 atHint.textContent =
